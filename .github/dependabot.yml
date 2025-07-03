@@ -1,0 +1,9 @@
+version: 2
+updates:
+  # Keep Docker base image (alpine) up to date
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    allow:
+      - dependency-type: "direct"
