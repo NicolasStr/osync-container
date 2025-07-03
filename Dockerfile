@@ -1,4 +1,4 @@
-FROM alpine:3.18
+FROM alpine:3.22
 
 # Install curl and bash (for osync)
 RUN apk add --no-cache curl bash
