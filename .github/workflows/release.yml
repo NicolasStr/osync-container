@@ -56,8 +56,8 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ steps.release-version.outputs.tag }}
-          name: Release ${{ steps.release-version.outputs.tag }}
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
           body: |
             ## 📦 Release Summary
 
@@ -66,8 +66,8 @@ jobs:
             ## 🐳 How to use this image
 
             ```sh
-            docker pull ghcr.io/${{ github.repository }}:${{ steps.release-version.outputs.tag }}
-            docker run --rm ghcr.io/${{ github.repository }}:${{ steps.release-version.outputs.tag }}
+            docker pull ghcr.io/${{ github.repository }}:${{ github.ref_name }}
+            docker run --rm ghcr.io/${{ github.repository }}:${{ github.ref_name }}
             ```
 
             Or always use the latest version:
