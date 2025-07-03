@@ -2,8 +2,8 @@ name: Release on main push
 
 on:
   push:
-    branches:
-      - main
+    tags:
+      - '*'
 
 permissions:
   contents: write
