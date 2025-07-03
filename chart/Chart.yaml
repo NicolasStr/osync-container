@@ -1,0 +1,5 @@
+apiVersion: v2
+name: osync-container
+version: 0.0.0
+description: A Helm chart to deploy as many osync-container pods as we need
+appVersion: "0.0.0"

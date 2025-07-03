@@ -1,0 +1,60 @@
+replicaCount: 1
+
+image:
+  repository: ghcr.io/nicolasstr/osync-container
+  tag: latest
+  pullPolicy: IfNotPresent
+
+# List of PVCs to mount, each will result in a separate pod
+pvcs:
+  - name: data1
+    claimName: my-claim1
+    mountPath: /data1
+    targetSyncDir: /remote/target1
+  - name: data2
+    claimName: my-claim2
+    mountPath: /data2
+    targetSyncDir: /remote/target2
+
+# Environment variables to set in each container
+env: {}
+  # GENERAL__INSTANCE_ID: "sync_job1"
+  # ALERT_OPTIONS__ALWAYS_SEND_MAILS: "true"
+
+resources: {}
+
+podSecurityContext:
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+  fsGroupChangePolicy: "OnRootMismatch"
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: false
+  runAsNonRoot: true
+
+tolerations: []
+affinity: {}
+nodeSelector: {}
+
+podAntiAffinity:
+  enabled: true
+  topologyKey: "kubernetes.io/hostname"
+
+livenessProbe: {}
+#  exec:
+#    command:
+#      - sh
+#      - -c
+#      - "pgrep osync || pgrep bash || pgrep sh"
+#  initialDelaySeconds: 30
+#  periodSeconds: 30
+#  timeoutSeconds: 5
+#  failureThreshold: 3
+
+serviceAccount:
+  create: false
+  name: ""  # or set a custom name

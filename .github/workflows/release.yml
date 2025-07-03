@@ -53,6 +53,33 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
+      - name: Update Helm chart version
+        run: |
+          sed -i "s/^version: .*/version: ${{ github.ref_name }}/" chart/Chart.yaml
+      
+      - name: Package Helm chart
+        run: |
+          helm package chart --destination target
+
+      - name: Checkout gh-pages branch
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: gh-pages
+
+      - name: Update Helm repo index
+        run: |
+          cp target/*.tgz gh-pages/
+          cd gh-pages
+          helm repo index . --url https://nicolasstr.github.io/osync-container
+
+      - name: Commit and push Helm chart to gh-pages
+        run: |
+          cd gh-pages
+          git add .
+          git commit -m "Update Helm chart for ${{ github.ref_name }}" || echo "No changes to commit"
+          git push
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
@@ -63,7 +90,11 @@ jobs:
 
             This release was automatically generated from commit [${{ github.sha }}](https://github.com/${{ github.repository }}/commit/${{ github.sha }}).
 
-            ## 🐳 How to use this image
+            # 🚀 Deploy
+
+            ## 🐳 Using Docker
+
+            You can pull the Docker image for this release using the following command:
 
             ```sh
             docker pull ghcr.io/${{ github.repository }}:${{ github.ref_name }}
@@ -73,6 +104,19 @@ jobs:
             Or always use the latest version:
             ```sh
             docker pull ghcr.io/${{ github.repository }}:latest
+            ```
+
+            ## ⎈ Using Helm
+
+            You can deploy this release using Helm with the following command:
+
+            ```sh
+            helm repo add osync https://nicolasstr.github.io/osync-container
+            helm repo update
+            # Create a values.yaml file with your configuration
+            vim values.yaml
+            # Then install the chart with your values
+            helm install osync osync/osync --version ${{ github.ref_name }} -f values.yaml
             ```
 
             ---

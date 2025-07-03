@@ -1,0 +1,63 @@
+{{- $image := .Values.image.repository }}
+{{- $tag := .Values.image.tag | default "latest" }}
+{{- $pullPolicy := .Values.image.pullPolicy | default "IfNotPresent" }}
+
+{{- range $idx, $pvc := .Values.pvcs }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "osync.fullname" $ }}-{{ $pvc.name }}
+  labels:
+    {{- include "osync.labels" $ | nindent 4 }}
+    pvc: {{ $pvc.name }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "osync.selectorLabels" $ | nindent 6 }}
+      pvc: {{ $pvc.name }}
+  template:
+    metadata:
+      labels:
+        {{- include "osync.selectorLabels" $ | nindent 8 }}
+        pvc: {{ $pvc.name }}
+    spec:
+      serviceAccountName: {{ include "osync.serviceAccountName" $ }}
+      {{- with $.Values.podSecurityContext }}
+      podSecurityContext: {{ toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $.Values.tolerations }}
+      tolerations: {{ toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $.Values.affinity }}
+      affinity: {{ toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $.Values.nodeSelector }}
+      nodeSelector: {{ toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: osync
+          image: {{ $image }}:{{ $tag }}
+          imagePullPolicy: {{ $pullPolicy }}
+          env:
+            - name: GENERAL__INITIATOR_SYNC_DIR
+              value: {{ $pvc.mountPath | quote }}
+            - name: GENERAL__TARGET_SYNC_DIR
+              value: {{ $pvc.targetSyncDir | quote }}
+            {{- range $key, $value := $.Values.env }}
+            - name: {{ $key }}
+              value: "{{ $value }}"
+            {{- end }}
+          volumeMounts:
+            - name: {{ $pvc.name }}
+              mountPath: {{ $pvc.mountPath }}
+          securityContext:
+            {{- toYaml $.Values.securityContext | nindent 12 }}
+          livenessProbe:
+            {{- toYaml $.Values.livenessProbe | nindent 12 }}
+      volumes:
+        - name: {{ $pvc.name }}
+          persistentVolumeClaim:
+            claimName: {{ $pvc.claimName | default $pvc.name }}
+---
+{{- end }}
